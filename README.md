@@ -22,7 +22,42 @@
 3. 觸發器：財報、宏觀數據、負面評論、融資消息等只是點火因素。
 4. 執行：先用小倉位建立 `SMH put spread`，等跌破 `HVL 7495`、Gamma 結構翻負後再加倉。
 
-## 使用方式
+## 即時表盤
+
+本項目現在包含一個本地即時表盤。啟動方式：
+
+```bash
+cp .env.example .env
+npm start
+```
+
+然後打開 `http://127.0.0.1:8000/dashboard.html`。
+
+如果本機沒有 `npm`，也可以直接執行：
+
+```bash
+node server.js
+```
+
+默認 `DATA_PROVIDER=mock`，用於先看表盤和判斷邏輯。要接真實數據，把 `.env` 改成：
+
+```bash
+DATA_PROVIDER=tradier
+TRADIER_TOKEN=你的 token
+```
+
+或：
+
+```bash
+DATA_PROVIDER=polygon
+POLYGON_API_KEY=你的 key
+```
+
+`VIXEQ`、`COR1M` 這類 Cboe 指數不是普通股票報價。若要真實即時值，需要 Cboe Global Indices Feed 或其他有授權的市場數據源；在接入前可用 `.env` 裡的 `VIXEQ_VALUE`、`VIX_VALUE`、`COR1M_VALUE`、`HVL_VALUE` 手動覆蓋。
+
+TradingView 可以作為圖表 widget 嵌入，但它不會把你帳號中的付費數據作為 API 暴露給這個項目。因此不建議把 TradingView 登錄態當成後端數據源。
+
+## 靜態圖解
 
 直接打開 `index.html` 即可查看：
 

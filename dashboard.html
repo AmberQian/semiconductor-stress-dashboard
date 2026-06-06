@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>半導體槓桿即時表盤</title>
+    <meta name="description" content="VIXEQ、COR1M、Call/Put、Skew、HVL 與半導體報價的本地即時監控表盤。">
+    <link rel="stylesheet" href="dashboard.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Realtime Dashboard</p>
+        <h1>半導體槓桿踩踏監控</h1>
+      </div>
+      <div class="status" id="status">
+        <span class="dot"></span>
+        <b>連線中</b>
+        <small>--</small>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="risk-panel" id="riskPanel">
+        <div>
+          <p class="eyebrow">Structure State</p>
+          <h2 id="riskTitle">等待數據</h2>
+          <p id="riskText">表盤每 15 秒更新一次。沒有授權數據源時會使用 mock 模式。</p>
+        </div>
+        <div class="risk-score">
+          <strong id="riskScore">0/4</strong>
+          <span>共振信號</span>
+        </div>
+      </section>
+
+      <section class="grid grid--indicators" aria-label="核心結構指標">
+        <article class="card metric">
+          <span>VIXEQ</span>
+          <strong id="vixeq">--</strong>
+          <small id="vixeqSource">--</small>
+        </article>
+        <article class="card metric">
+          <span>VIX</span>
+          <strong id="vix">--</strong>
+          <small id="vixSource">--</small>
+        </article>
+        <article class="card metric metric--core">
+          <span>VIXEQ / VIX</span>
+          <strong id="premium">--</strong>
+          <small>單股恐慌溢價</small>
+        </article>
+        <article class="card metric metric--core">
+          <span>COR1M</span>
+          <strong id="cor1m">--</strong>
+          <small id="cor1mSource">--</small>
+        </article>
+        <article class="card metric">
+          <span>Call/Put</span>
+          <strong id="callPut">--</strong>
+          <small id="callPutSource">--</small>
+        </article>
+        <article class="card metric">
+          <span>Left-tail Skew</span>
+          <strong id="skew">--</strong>
+          <small id="skewSource">--</small>
+        </article>
+      </section>
+
+      <section class="split">
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Decision Checks</p>
+              <h2>結構共振</h2>
+            </div>
+          </div>
+          <div class="checks" id="checks"></div>
+        </article>
+
+        <article class="card hvl-card">
+          <div class="card-head">
+            <div>
+              <p class="eyebrow">Execution Trigger</p>
+              <h2>HVL / Gamma 翻轉</h2>
+            </div>
+            <strong id="hvl">7495</strong>
+          </div>
+          <div class="hvl-track">
+            <span class="positive">正 Gamma：壓波動</span>
+            <b>HVL</b>
+            <span class="negative">負 Gamma：越跌越賣</span>
+          </div>
+          <p class="note">HVL 需要由你的 Periscope / SpotGamma / 自有期權模型輸入；表盤先支持手動環境變量。</p>
+        </article>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">Semiconductor Watchlist</p>
+            <h2>報價監控</h2>
+          </div>
+          <small id="quoteTime">--</small>
+        </div>
+        <div class="quotes" id="quotes"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">TradingView Widget</p>
+            <h2>SMH 參考圖</h2>
+          </div>
+        </div>
+        <div class="tv-wrap">
+          <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script
+              type="text/javascript"
+              src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
+              async
+            >
+              {
+                "autosize": true,
+                "symbol": "NASDAQ:SMH",
+                "interval": "15",
+                "timezone": "America/New_York",
+                "theme": "light",
+                "style": "1",
+                "locale": "zh_TW",
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "calendar": false,
+                "support_host": "https://www.tradingview.com"
+              }
+            </script>
+          </div>
+        </div>
+        <p class="note">TradingView widget 可顯示圖表，但不向本項目暴露可計算的期權鏈、VIXEQ 或 COR1M API。</p>
+      </section>
+    </main>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>

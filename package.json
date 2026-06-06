@@ -1,0 +1,11 @@
+{
+  "name": "semiconductor-leverage-dashboard",
+  "version": "0.2.0",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "license": "MIT"
+}
