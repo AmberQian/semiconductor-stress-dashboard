@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>半導體槓桿踩踏框架圖解</title>
+    <meta
+      name="description"
+      content="把 Franktradinglog 對 VIXEQ、COR1M、Call/Put、Skew、HVL 的交易框架整理成可視化圖表。"
+    >
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="hero">
+      <nav class="nav" aria-label="頁面導航">
+        <a href="#signals">信號</a>
+        <a href="#flow">框架</a>
+        <a href="#execution">執行</a>
+        <a href="#table">指標表</a>
+      </nav>
+      <section class="hero__inner">
+        <p class="eyebrow">Franktradinglog ID: 2063321681683460265 Recap</p>
+        <h1>半導體槓桿踩踏交易框架</h1>
+        <p class="hero__copy">
+          核心不是「基本面突然變壞」，而是期權市場提前顯示：
+          單股投機過熱、隱含相關性塌到極低、做市商 Gamma 結構即將翻空。
+        </p>
+      </section>
+    </header>
+
+    <main>
+      <section class="band" id="signals">
+        <div class="section-head">
+          <p class="eyebrow">Signal Stack</p>
+          <h2>先看結構，不先猜故事</h2>
+          <p>
+            這套方法把信號分成三層：核心結構、輔助確認、執行觸發。VIXEQ 與 COR1M
+            是最重要的兩個讀數。
+          </p>
+        </div>
+
+        <div class="signal-grid">
+          <article class="signal-card signal-card--core">
+            <span class="rank">01</span>
+            <h3>VIXEQ 高於 VIX</h3>
+            <p>單股期權被買到昂貴，代表個股層面的恐慌/投機溢價極端。</p>
+            <div class="mini-chart" aria-label="VIXEQ 高於 VIX 示意圖">
+              <span style="height: 42%" data-label="VIX"></span>
+              <span style="height: 86%" data-label="VIXEQ"></span>
+            </div>
+            <strong>用途：判斷單股槓桿與投機是否進入最激進階段。</strong>
+          </article>
+
+          <article class="signal-card signal-card--core">
+            <span class="rank">02</span>
+            <h3>COR1M 極低</h3>
+            <p>帖子提到 COR1M 收在 6.33，代表市場假設個股之間幾乎互不相關。</p>
+            <div class="corr-gauge" aria-label="COR1M 極低示意圖">
+              <span class="corr-gauge__fill"></span>
+              <b>6.33</b>
+            </div>
+            <strong>用途：識別「看似分散、實際同向槓桿」的脆弱結構。</strong>
+          </article>
+
+          <article class="signal-card">
+            <span class="rank">03</span>
+            <h3>Call/Put 偏高</h3>
+            <p>Call heavy 代表看漲期權投機擁擠。大跌後仍偏高，說明槓桿未必出清。</p>
+            <div class="ratio-line" aria-label="Call Put Ratio 偏高示意圖">
+              <i></i>
+            </div>
+            <strong>用途：輔助確認投機高潮與去槓桿是否完成。</strong>
+          </article>
+
+          <article class="signal-card">
+            <span class="rank">04</span>
+            <h3>情緒過熱</h3>
+            <p>廣義情緒指標用來確認市場是否已經進入共識交易。</p>
+            <div class="heat-row" aria-label="情緒熱度示意圖">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <strong>用途：作為 VIXEQ/COR1M 極端信號的旁證。</strong>
+          </article>
+
+          <article class="signal-card">
+            <span class="rank">05</span>
+            <h3>個股左尾 Skew 急升</h3>
+            <p>Put 隱含波動率相對 Call 抬升，市場開始為單股極端下跌買保險。</p>
+            <div class="skew-chart" aria-label="左尾 skew 急升示意圖">
+              <span></span>
+            </div>
+            <strong>用途：更快捕捉單股槓桿鬆動與尾部風險。</strong>
+          </article>
+
+          <article class="signal-card">
+            <span class="rank">06</span>
+            <h3>HVL 7495</h3>
+            <p>高波動率水平是做市商 Gamma 翻轉點，不是普通技術支撐位。</p>
+            <div class="hvl-chip">Gamma Flip: 7495</div>
+            <strong>用途：等待結構翻空後加倉，而不是盲目猜頂。</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="band band--ink" id="flow">
+        <div class="section-head">
+          <p class="eyebrow">Method Map</p>
+          <h2>從結構信號到下行螺旋</h2>
+        </div>
+
+        <div class="flow">
+          <article>
+            <span>1</span>
+            <h3>槓桿堆積</h3>
+            <p>資金集中在 MU、NVDA、AMD、INTC 等半導體個股期權。</p>
+          </article>
+          <article>
+            <span>2</span>
+            <h3>指數看似穩</h3>
+            <p>COR1M 被壓到極低，市場相信押注彼此獨立。</p>
+          </article>
+          <article>
+            <span>3</span>
+            <h3>觸發器出現</h3>
+            <p>財報、宏觀數據、負面評論或融資消息都可能成為第一槍。</p>
+          </article>
+          <article>
+            <span>4</span>
+            <h3>相關性回 1</h3>
+            <p>本來分散的持倉同時變成一筆同向交易，所有票一起跌。</p>
+          </article>
+          <article>
+            <span>5</span>
+            <h3>Gamma 翻負</h3>
+            <p>跌破 HVL 後，做市商從穩定器變成被動賣方。</p>
+          </article>
+          <article>
+            <span>6</span>
+            <h3>槓桿踩踏</h3>
+            <p>去槓桿與強制賣壓互相放大，形成結構性下行螺旋。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="band" id="execution">
+        <div class="section-head">
+          <p class="eyebrow">Execution</p>
+          <h2>交易不是猜頂，而是等結構確認</h2>
+          <p>作者的操作重點是先用小倉位建立方向暴露，再等待 HVL 跌破後加倉。</p>
+        </div>
+
+        <div class="execution-layout">
+          <div class="hvl-panel">
+            <div class="hvl-axis">
+              <span class="zone zone--positive">7495 以上：正 Gamma，買跌賣漲，壓波動</span>
+              <span class="hvl-marker">HVL 7495</span>
+              <span class="zone zone--negative">跌破 7495：負 Gamma，越跌越賣，放大波動</span>
+            </div>
+          </div>
+
+          <ol class="trade-steps">
+            <li>
+              <b>先手</b>
+              <span>用約 1% 倉位建立 SMH put spread，等待結構驗證。</span>
+            </li>
+            <li>
+              <b>確認</b>
+              <span>觀察 VIXEQ 高、COR1M 極低、Call/Put 偏高、Skew 上升是否共振。</span>
+            </li>
+            <li>
+              <b>加倉</b>
+              <span>價格跌破 HVL 7495，做市商 Gamma 翻負後再增加風險敞口。</span>
+            </li>
+            <li>
+              <b>復盤</b>
+              <span>若大跌後 Call heavy 仍未退潮，代表槓桿可能尚未真正出清。</span>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="band band--soft" id="table">
+        <div class="section-head">
+          <p class="eyebrow">Indicator Sheet</p>
+          <h2>指標速查表</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>指標</th>
+                <th>怎麼算/看</th>
+                <th>代表什麼</th>
+                <th>在框架中的角色</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>VIXEQ</td>
+                <td>標普 500 成分股單股期權 IV 的市值加權平均</td>
+                <td>個股層面恐慌/投機溢價</td>
+                <td>核心結構信號</td>
+              </tr>
+              <tr>
+                <td>COR1M</td>
+                <td>由期權價格推算的 1 個月隱含相關性</td>
+                <td>相關性越低，分散槓桿越脆弱</td>
+                <td>核心結構信號</td>
+              </tr>
+              <tr>
+                <td>Call/Put</td>
+                <td>看漲期權成交量或持倉量 ÷ 看跌期權</td>
+                <td>Call heavy 代表看漲投機擁擠</td>
+                <td>輔助確認</td>
+              </tr>
+              <tr>
+                <td>情緒指標</td>
+                <td>多種市場情緒工具</td>
+                <td>共識交易是否過熱</td>
+                <td>輔助確認</td>
+              </tr>
+              <tr>
+                <td>左尾 Skew</td>
+                <td>單股 put IV 相對 call IV 的抬升</td>
+                <td>市場開始為崩盤買保險</td>
+                <td>敏感補充信號</td>
+              </tr>
+              <tr>
+                <td>HVL</td>
+                <td>期權市場推算出的高波動率/Gamma 翻轉水平</td>
+                <td>做市商從穩定器轉為強制賣方</td>
+                <td>執行觸發點</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="band disclaimer">
+        <h2>重要說明</h2>
+        <p>
+          本項目是對公開帖子交易框架的教育性圖解整理，不構成投資建議。
+          頁面中的圖形是方法論示意，不是實時行情或可直接下單的信號。
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <span>Open-source visual recap</span>
+      <a href="README.md">README</a>
+    </footer>
+  </body>
+</html>
