@@ -38,6 +38,22 @@ python3 -m http.server 8000
 
 然後訪問 `http://localhost:8000`。
 
+## 發布到 GitHub Pages
+
+創建一個新的 GitHub 倉庫後，在本地執行：
+
+```bash
+git remote add origin https://github.com/<your-user>/<your-repo>.git
+git push -u origin main
+```
+
+如果要啟用 GitHub Pages：
+
+1. 打開倉庫的 `Settings`。
+2. 進入 `Pages`。
+3. Source 選擇 `Deploy from a branch`。
+4. Branch 選擇 `main`，目錄選擇 `/root`。
+
 ## 免責聲明
 
 本項目是教育性圖解整理，不構成投資建議。頁面中的圖形為框架示意，不是實時行情，也不是可直接交易的信號。
