@@ -1,127 +1,49 @@
 # 半导体杠杆踩踏监控表盘
 
-这是一个把 Franktradinglog ID `2063321681683460265` 相关帖子中的交易框架做成可视化表盘的开源项目。
+这个表盘把 Franktradinglog ID `2063321681683460265` 相关帖子里的核心方法论做成了一个更直观的监控页面。
 
 核心观点：
 
-> 半导体下跌不一定先来自基本面突然崩坏，真正需要先看的，是期权市场里是否已经出现极端拥挤、相关性被压低、杠杆堆积和 Gamma 翻空风险。
+> 半导体下跌不一定先来自基本面突然崩坏，更需要提前观察期权市场里是否已经出现极端拥挤、相关性被压低、杠杆堆积和 Gamma 翻空风险。
 
-## 当前版本
-
-新版已经从“框架图解”升级为“表盘优先”：
-
-- 第一屏直接显示结构状态、共振分数和关键指标。
-- 核心指标包括 `VIXEQ`、`VIX`、`VIXEQ/VIX`、`COR1M`、`SPX`、`HVL`、`Call/Put`、`Left-tail Skew`、`Sentiment`。
-- 信号灯从 4 个扩展为 6 个：`VIXEQ/VIX 溢价`、`COR1M 极低`、`Call heavy`、`左尾 Skew 升温`、`跌破 HVL`、`情绪过热`。
-- 解释、数据来源、接入路线和计算方法都放在表盘后面，不挡住核心判断。
-- GitHub Pages 上会读取 `manual_snapshot.json` 作为公开网页临时快照；本地运行时可以接 Massive、Tradier 或其他数据源。
-
-## 在线查看
-
-GitHub Pages 启用后，访问：
+## 打开表盘
 
 ```text
 https://amberqian.github.io/semiconductor-stress-dashboard/dashboard.html
 ```
 
-如果只打开仓库首页，GitHub 默认展示的是这份 README。真正的表盘在 `dashboard.html`。
+## 这个表盘有什么用？
 
-## 本地运行
+它不是用来预测某个财报或新闻，而是用来观察市场结构有没有从“热”变成“脆”。
 
-推荐用这个脚本启动：
+表盘会把作者提到的几个关键指标放在一起看：
 
-```bash
-zsh start-dashboard.sh
-```
+- `VIXEQ / VIX`：判断单股期权恐慌和投机是否明显高于指数层面。
+- `COR1M`：判断隐含相关性是否被压到很低，市场是否低估了“大家一起跌”的风险。
+- `Call/Put`：观察看涨期权投机是否过热。
+- `Left-tail Skew`：观察市场是否开始为个股暴跌买保险。
+- `SPX / HVL`：判断价格是否跌破 Gamma 翻转区，做市商是否可能从稳定器变成卖压放大器。
+- `Sentiment`：作为市场情绪背景，不单独作为交易触发。
 
-然后打开：
+## 怎么看？
 
-```text
-http://127.0.0.1:8000/dashboard.html
-```
+第一屏先看三件事：
 
-如果你的电脑有 Node.js，也可以运行：
+1. `结构状态`：正常、观察、脆弱。
+2. `共振信号`：多个信号灯同时亮起，才说明结构风险更值得重视。
+3. `HVL / Gamma 翻转`：跌破 HVL 后，踩踏风险可能被放大。
 
-```bash
-npm start
-```
+这套逻辑的重点不是“单个指标一亮就交易”，而是看多个指标是否同时指向同一个结论。
 
-## 配置 API Key
+## 当前数据提醒
 
-Massive API key 的小白配置方式：
+当前线上版本使用公开网页快照和代理指标来展示完整表盘效果，不是生产级实时行情。
 
-```bash
-zsh setup-key.sh
-```
+其中：
 
-脚本会让你在本机粘贴 key，并自动生成 `.env`。不要把真实 key 发到聊天里，也不要提交到 GitHub。
-
-`.env` 示例：
-
-```bash
-DATA_PROVIDER=massive
-MASSIVE_API_KEY=你的_key
-WATCHLIST=SMH,NVDA,AMD,MU,AVGO,INTC,QQQ,SPY
-```
-
-更多申请步骤见 [API_SETUP.zh-CN.md](API_SETUP.zh-CN.md)。
-
-## 当前快照数据
-
-`manual_snapshot.json` 是临时网页快照，用来让 GitHub Pages 和演示页面先完整显示表盘。它不是实时自动数据源。
-
-当前快照包括：
-
-- `VIXEQ`: S&P DJI 官方页面最新收盘。
-- `VIX` / `SPX`: 公开网页收盘数据。
-- `COR1M`: 公开网页显示值。
-- `HVL`: 原帖/截图参考值，不是实时 Gamma 计算。
-- `Call/Put`: SMH 期权链公开网页成交量代理。
-- `Left-tail Skew`: SMH 近月期权 IV 代理。
-- `Sentiment`: 情绪指标辅助值。
-
-## 数据源说明
-
-这套方法里的数据分成三类：
-
-- 可以直接接股票/ETF 行情：SMH、NVDA、AMD、MU、AVGO、INTC、QQQ、SPY。
-- 可以用期权链自己算：Call/Put、Left-tail Skew、近似 Gamma Flip。
-- 需要授权指数源：VIXEQ、COR1M、VIX 的稳定实时版本。
-
-VIXEQ 和 COR1M 属于 Cboe/S&P 相关指数，不是普通股票报价。要做生产级实时表盘，通常需要 Cboe Global Indices Feed、授权行情商，或能合法提供这些指数的供应商。
-
-TradingView 可以嵌入图表，但不会把登录账号里的付费数据开放成后端 API，所以不能把 TradingView 当作本项目的数据源。
-
-## 文件结构
-
-```text
-dashboard.html        表盘页面
-dashboard.css         表盘样式
-dashboard.js          表盘逻辑，本地 API 失败时会读取 manual_snapshot.json
-dashboard_server.py   无 Node.js 时使用的 Python 本地服务
-server.js             Node.js 本地服务
-manual_snapshot.json  GitHub Pages 和演示用临时快照
-setup-key.sh          Mac 小白配置 API key 脚本
-start-dashboard.sh    Mac 小白启动脚本
-API_SETUP.zh-CN.md    API 申请和配置教程
-index.html            项目入口页
-```
-
-## 发布到 GitHub Pages
-
-在仓库页面：
-
-1. 打开 `Settings`。
-2. 进入 `Pages`。
-3. `Source` 选择 `Deploy from a branch`。
-4. `Branch` 选择 `main`，目录选择 `/ (root)`。
-5. 保存后等待 1 到 3 分钟。
-
-线上表盘地址通常是：
-
-```text
-https://amberqian.github.io/semiconductor-stress-dashboard/dashboard.html
-```
+- `VIXEQ`、`COR1M` 这类指数需要授权数据源才能稳定实时接入。
+- `Call/Put` 和 `Left-tail Skew` 可以用期权链进一步自动计算。
+- `HVL / Gamma Flip` 需要 Gamma Exposure 模型或专业数据源。
 
 ## 免责声明
 
