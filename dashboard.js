@@ -65,7 +65,7 @@ function updateRisk(evaluation, provider) {
   elements.riskPanel.className = `risk-panel ${evaluation.state}`;
   elements.riskTitle.textContent = title;
   elements.riskText.textContent = `${text} 数据源：${provider}。`;
-  elements.riskScore.textContent = `${evaluation.score}/4`;
+  elements.riskScore.textContent = `${evaluation.score}/${evaluation.checks.length}`;
 }
 
 function translateSource(source) {
@@ -130,8 +130,6 @@ function updateIndicators(structure) {
 }
 
 function translateCheckDetail(detail) {
-  if (detail === "等待數據") return "等待数据";
-  if (detail === "等待期權鏈") return "等待期权链";
   if (detail === "等待 IV/skew") return "等待 IV/Skew";
   return detail;
 }
@@ -216,8 +214,95 @@ async function loadSnapshot() {
       elements.quoteNote.textContent = "当前报价用于观察半导体风险资产的同步性。";
     }
   } catch (error) {
-    setStatus("error", "连接失败", error.message);
+    try {
+      const data = await loadManualSnapshot();
+      updateRisk(data.evaluation, data.structure.provider);
+      updateIndicators(data.structure);
+      updateChecks(data.evaluation.checks);
+      updateQuotes(data.quotes, data.timestamp);
+      setStatus("ok", "静态快照", formatTime(data.timestamp));
+      elements.quoteNote.textContent = "当前为 GitHub Pages 静态快照。实时数据需要在本地启动后端服务。";
+    } catch (fallbackError) {
+      setStatus("error", "连接失败", `${error.message}; ${fallbackError.message}`);
+    }
   }
+}
+
+function buildEvaluation(structure) {
+  const { vixeq, vix, cor1m, callPut, leftTailSkew, hvl, spx, sentiment } = structure.indicators;
+  const checks = [
+    {
+      id: "vixeqPremium",
+      label: "VIXEQ/VIX 溢价",
+      active: vixeq.value !== null && vix.value !== null && vix.value > 0 && vixeq.value / vix.value >= 1.6,
+      detail: vixeq.value !== null && vix.value !== null && vix.value > 0 ? `${(vixeq.value / vix.value).toFixed(2)}x` : "等待数据",
+    },
+    {
+      id: "lowCorrelation",
+      label: "COR1M 极低",
+      active: cor1m.value !== null && cor1m.value <= 15,
+      detail: cor1m.value === null ? "等待数据" : String(cor1m.value),
+    },
+    {
+      id: "callHeavy",
+      label: "Call heavy",
+      active: callPut.value !== null && callPut.value >= 2,
+      detail: callPut.value === null ? "等待期权链" : `${callPut.value.toFixed(2)}x`,
+    },
+    {
+      id: "skewRising",
+      label: "左尾 Skew 升温",
+      active: leftTailSkew.value !== null && leftTailSkew.value >= 8,
+      detail: leftTailSkew.value === null ? "等待 IV/Skew" : `${leftTailSkew.value.toFixed(2)} IV点`,
+    },
+    {
+      id: "hvlBreak",
+      label: "跌破 HVL",
+      active: spx.value !== null && hvl.value !== null && spx.value < hvl.value,
+      detail: spx.value === null || hvl.value === null ? "等待 SPX/HVL" : `${spx.value.toFixed(2)} / ${hvl.value.toFixed(0)}`,
+    },
+    {
+      id: "sentimentHot",
+      label: "情绪过热",
+      active: sentiment.value !== null && sentiment.value >= 70,
+      detail: sentiment.value === null ? "等待情绪数据" : `${sentiment.value.toFixed(0)}/100`,
+    },
+  ];
+  const score = checks.filter((check) => check.active).length;
+  const state = score >= 4 ? "fragile" : score >= 2 ? "watch" : "normal";
+  return { state, score, checks };
+}
+
+async function loadManualSnapshot() {
+  const response = await fetch("manual_snapshot.json", { cache: "no-store" });
+  if (!response.ok) throw new Error(`manual_snapshot.json HTTP ${response.status}`);
+  const snapshot = await response.json();
+  const indicators = {};
+  for (const [key, item] of Object.entries(snapshot.indicators || {})) {
+    indicators[key] = {
+      label: key,
+      value: item.value === null || item.value === undefined ? null : Number(item.value),
+      source: item.source || "临时网页快照",
+    };
+  }
+  const structure = {
+    timestamp: snapshot.capturedAt || new Date().toISOString(),
+    provider: "GitHub Pages 静态快照",
+    indicators,
+  };
+  const quotes = (snapshot.quotes || []).map((quote) => ({
+    symbol: quote.symbol,
+    price: quote.price,
+    changePercent: quote.changePercent,
+    updatedAt: snapshot.capturedAt || new Date().toISOString(),
+    source: quote.source || "临时网页快照",
+  }));
+  return {
+    timestamp: structure.timestamp,
+    structure,
+    quotes,
+    evaluation: buildEvaluation(structure),
+  };
 }
 
 loadSnapshot();

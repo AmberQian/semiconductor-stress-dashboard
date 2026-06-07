@@ -91,6 +91,22 @@ a {
   color: rgba(255, 255, 255, 0.86);
 }
 
+.hero-button {
+  width: fit-content;
+  margin-top: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 8px;
+  color: #fff;
+  background: var(--red);
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.18);
+}
+
 .band {
   padding: 76px 0;
 }

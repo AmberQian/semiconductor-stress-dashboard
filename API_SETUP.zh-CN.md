@@ -129,7 +129,8 @@ HVL_VALUE=7495
 - `mock` 模式：不用 token，先看界面和判断逻辑。
 - `tradier` 模式：读取 watchlist 报价。
 - `polygon` / `massive` 模式：读取 watchlist 股票快照。
-- 手动覆盖：`VIXEQ_VALUE`、`VIX_VALUE`、`COR1M_VALUE`、`HVL_VALUE`。
+- 手动覆盖：`VIXEQ_VALUE`、`VIX_VALUE`、`COR1M_VALUE`、`SPX_VALUE`、`HVL_VALUE`、`SENTIMENT_VALUE`。
+- GitHub Pages 静态快照：读取 `manual_snapshot.json`，用于线上演示完整新版表盘。
 
 待接入：
 

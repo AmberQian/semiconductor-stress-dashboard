@@ -1,114 +1,131 @@
-# 半導體槓桿踩踏框架圖解
+# 半导体杠杆踩踏监控表盘
 
-這是一個把 Franktradinglog ID `2063321681683460265` 及其上一帖中提到的交易方法論視覺化的開源小項目。
+这是一个把 Franktradinglog ID `2063321681683460265` 相关帖子中的交易框架做成可视化表盘的开源项目。
 
-核心命題：
+核心观点：
 
-> 半導體下跌的主因不是基本面突然崩壞，而是期權市場中極端擁擠與槓桿堆積造成的結構性踩踏。
+> 半导体下跌不一定先来自基本面突然崩坏，真正需要先看的，是期权市场里是否已经出现极端拥挤、相关性被压低、杠杆堆积和 Gamma 翻空风险。
 
-## 內容
+## 当前版本
 
-- `VIXEQ`：觀察單股期權隱含波動率是否相對指數波動率過度昂貴。
-- `COR1M`：觀察隱含相關性是否被壓到極低，從而形成「看似分散、實際同向」的脆弱結構。
-- `Call/Put Ratio`：確認看漲投機是否擁擠，並觀察大跌後槓桿是否出清。
-- `Sentiment Indicators`：輔助判斷市場是否進入共識交易。
-- `Individual Stock Skew`：捕捉單股左尾風險是否快速升溫。
-- `HVL 7495`：作為 Gamma 翻轉與加倉執行的關鍵位置。
+新版已经从“框架图解”升级为“表盘优先”：
 
-## 方法論摘要
+- 第一屏直接显示结构状态、共振分数和关键指标。
+- 核心指标包括 `VIXEQ`、`VIX`、`VIXEQ/VIX`、`COR1M`、`SPX`、`HVL`、`Call/Put`、`Left-tail Skew`、`Sentiment`。
+- 信号灯从 4 个扩展为 6 个：`VIXEQ/VIX 溢价`、`COR1M 极低`、`Call heavy`、`左尾 Skew 升温`、`跌破 HVL`、`情绪过热`。
+- 解释、数据来源、接入路线和计算方法都放在表盘后面，不挡住核心判断。
+- GitHub Pages 上会读取 `manual_snapshot.json` 作为公开网页临时快照；本地运行时可以接 Massive、Tradier 或其他数据源。
 
-1. 核心結構：`高 VIXEQ + 極低 COR1M`。
-2. 輔助確認：`Call/Put 偏高 + 情緒過熱 + 左尾 Skew 急升`。
-3. 觸發器：財報、宏觀數據、負面評論、融資消息等只是點火因素。
-4. 執行：先用小倉位建立 `SMH put spread`，等跌破 `HVL 7495`、Gamma 結構翻負後再加倉。
+## 在线查看
 
-## 即時表盤
+GitHub Pages 启用后，访问：
 
-本項目現在包含一個本地即時表盤。啟動方式：
-
-```bash
-cp .env.example .env
-npm start
+```text
+https://amberqian.github.io/semiconductor-stress-dashboard/dashboard.html
 ```
 
-然後打開 `http://127.0.0.1:8000/dashboard.html`。
+如果只打开仓库首页，GitHub 默认展示的是这份 README。真正的表盘在 `dashboard.html`。
 
-如果本機沒有 `npm`，也可以直接執行：
+## 本地运行
 
-```bash
-node server.js
-```
-
-小白模式配置 Massive API key：
+推荐用这个脚本启动：
 
 ```bash
-node setup-key.js
-```
-
-脚本会让你在本机粘贴 key，并自动生成 `.env`。不要把真实 key 发到聊天里。
-
-如果本机终端没有 `node` 命令，用 Mac 自带 zsh 版本：
-
-```bash
-zsh setup-key.sh
 zsh start-dashboard.sh
 ```
 
-默認 `DATA_PROVIDER=mock`，用於先看表盤和判斷邏輯。要接真實數據，把 `.env` 改成：
+然后打开：
 
-```bash
-DATA_PROVIDER=tradier
-TRADIER_TOKEN=你的 token
+```text
+http://127.0.0.1:8000/dashboard.html
 ```
 
-或 Polygon.io / Massive：
+如果你的电脑有 Node.js，也可以运行：
+
+```bash
+npm start
+```
+
+## 配置 API Key
+
+Massive API key 的小白配置方式：
+
+```bash
+zsh setup-key.sh
+```
+
+脚本会让你在本机粘贴 key，并自动生成 `.env`。不要把真实 key 发到聊天里，也不要提交到 GitHub。
+
+`.env` 示例：
 
 ```bash
 DATA_PROVIDER=massive
-MASSIVE_API_KEY=你的 key
+MASSIVE_API_KEY=你的_key
+WATCHLIST=SMH,NVDA,AMD,MU,AVGO,INTC,QQQ,SPY
 ```
 
-`VIXEQ`、`COR1M` 這類 Cboe 指數不是普通股票報價。若要真實即時值，需要 Cboe Global Indices Feed 或其他有授權的市場數據源；在接入前可用 `.env` 裡的 `VIXEQ_VALUE`、`VIX_VALUE`、`COR1M_VALUE`、`HVL_VALUE` 手動覆蓋。
+更多申请步骤见 [API_SETUP.zh-CN.md](API_SETUP.zh-CN.md)。
 
-TradingView 可以作為圖表 widget 嵌入，但它不會把你帳號中的付費數據作為 API 暴露給這個項目。因此不建議把 TradingView 登錄態當成後端數據源。
+## 当前快照数据
 
-中文 API 申请与配置步骤见 [API_SETUP.zh-CN.md](API_SETUP.zh-CN.md)。
+`manual_snapshot.json` 是临时网页快照，用来让 GitHub Pages 和演示页面先完整显示表盘。它不是实时自动数据源。
 
-## 靜態圖解
+当前快照包括：
 
-直接打開 `index.html` 即可查看：
+- `VIXEQ`: S&P DJI 官方页面最新收盘。
+- `VIX` / `SPX`: 公开网页收盘数据。
+- `COR1M`: 公开网页显示值。
+- `HVL`: 原帖/截图参考值，不是实时 Gamma 计算。
+- `Call/Put`: SMH 期权链公开网页成交量代理。
+- `Left-tail Skew`: SMH 近月期权 IV 代理。
+- `Sentiment`: 情绪指标辅助值。
 
-```bash
-open index.html
+## 数据源说明
+
+这套方法里的数据分成三类：
+
+- 可以直接接股票/ETF 行情：SMH、NVDA、AMD、MU、AVGO、INTC、QQQ、SPY。
+- 可以用期权链自己算：Call/Put、Left-tail Skew、近似 Gamma Flip。
+- 需要授权指数源：VIXEQ、COR1M、VIX 的稳定实时版本。
+
+VIXEQ 和 COR1M 属于 Cboe/S&P 相关指数，不是普通股票报价。要做生产级实时表盘，通常需要 Cboe Global Indices Feed、授权行情商，或能合法提供这些指数的供应商。
+
+TradingView 可以嵌入图表，但不会把登录账号里的付费数据开放成后端 API，所以不能把 TradingView 当作本项目的数据源。
+
+## 文件结构
+
+```text
+dashboard.html        表盘页面
+dashboard.css         表盘样式
+dashboard.js          表盘逻辑，本地 API 失败时会读取 manual_snapshot.json
+dashboard_server.py   无 Node.js 时使用的 Python 本地服务
+server.js             Node.js 本地服务
+manual_snapshot.json  GitHub Pages 和演示用临时快照
+setup-key.sh          Mac 小白配置 API key 脚本
+start-dashboard.sh    Mac 小白启动脚本
+API_SETUP.zh-CN.md    API 申请和配置教程
+index.html            项目入口页
 ```
 
-或使用任意靜態服務器：
+## 发布到 GitHub Pages
 
-```bash
-python3 -m http.server 8000
+在仓库页面：
+
+1. 打开 `Settings`。
+2. 进入 `Pages`。
+3. `Source` 选择 `Deploy from a branch`。
+4. `Branch` 选择 `main`，目录选择 `/ (root)`。
+5. 保存后等待 1 到 3 分钟。
+
+线上表盘地址通常是：
+
+```text
+https://amberqian.github.io/semiconductor-stress-dashboard/dashboard.html
 ```
 
-然後訪問 `http://localhost:8000`。
+## 免责声明
 
-## 發布到 GitHub Pages
-
-創建一個新的 GitHub 倉庫後，在本地執行：
-
-```bash
-git remote add origin https://github.com/<your-user>/<your-repo>.git
-git push -u origin main
-```
-
-如果要啟用 GitHub Pages：
-
-1. 打開倉庫的 `Settings`。
-2. 進入 `Pages`。
-3. Source 選擇 `Deploy from a branch`。
-4. Branch 選擇 `main`，目錄選擇 `/root`。
-
-## 免責聲明
-
-本項目是教育性圖解整理，不構成投資建議。頁面中的圖形為框架示意，不是實時行情，也不是可直接交易的信號。
+本项目是教育性整理和数据可视化练习，不构成投资建议。页面中的信号灯和快照数据不是交易指令，也不能替代你自己的研究、风控和合规判断。
 
 ## License
 

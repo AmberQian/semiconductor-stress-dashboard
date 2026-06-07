@@ -1,5 +1,6 @@
 import http from "node:http";
 import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +44,12 @@ function numberOrNull(value) {
   if (value === undefined || value === null || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function loadManualSnapshot() {
+  const snapshotPath = path.join(__dirname, "manual_snapshot.json");
+  if (!existsSync(snapshotPath)) return null;
+  return JSON.parse(readFileSync(snapshotPath, "utf8"));
 }
 
 function getWatchlist() {
@@ -139,6 +146,16 @@ async function polygonQuotes(symbols) {
 }
 
 async function getQuotes() {
+  const manual = loadManualSnapshot();
+  if (manual?.quotes?.length) {
+    return manual.quotes.map((quote) => ({
+      symbol: quote.symbol,
+      price: numberOrNull(quote.price),
+      changePercent: numberOrNull(quote.changePercent),
+      updatedAt: manual.capturedAt || new Date().toISOString(),
+      source: quote.source || "临时网页快照",
+    }));
+  }
   const symbols = getWatchlist();
   const provider = (process.env.DATA_PROVIDER || "mock").toLowerCase();
   if (provider === "tradier") return tradierQuotes(symbols);
@@ -151,7 +168,7 @@ function getStructureSnapshot() {
   const mock = provider === "mock";
   const timestamp = new Date().toISOString();
 
-  return {
+  const structure = {
     timestamp,
     provider,
     indicators: {
@@ -175,6 +192,11 @@ function getStructureSnapshot() {
         value: numberOrNull(process.env.HVL_VALUE) ?? 7495,
         source: process.env.HVL_VALUE ? "manual" : "post reference",
       },
+      spx: {
+        label: "SPX",
+        value: numberOrNull(process.env.SPX_VALUE),
+        source: process.env.SPX_VALUE ? "manual" : "needs index feed",
+      },
       callPut: {
         label: "Call/Put",
         value: mock ? 2.7 : null,
@@ -185,12 +207,31 @@ function getStructureSnapshot() {
         value: mock ? 72 : null,
         source: mock ? "mock score 0-100" : "requires options IV/skew feed",
       },
+      sentiment: {
+        label: "Sentiment",
+        value: numberOrNull(process.env.SENTIMENT_VALUE) ?? (mock ? 78 : null),
+        source: process.env.SENTIMENT_VALUE ? "manual" : mock ? "mock score 0-100" : "requires sentiment feed",
+      },
     },
   };
+
+  const manual = loadManualSnapshot();
+  if (manual?.indicators) {
+    structure.timestamp = manual.capturedAt || structure.timestamp;
+    structure.provider = "临时网页快照";
+    for (const [key, item] of Object.entries(manual.indicators)) {
+      if (structure.indicators[key]) {
+        structure.indicators[key].value = numberOrNull(item.value);
+        structure.indicators[key].source = item.source || "临时网页快照";
+      }
+    }
+  }
+
+  return structure;
 }
 
 function evaluate(snapshot) {
-  const { vixeq, vix, cor1m, callPut, leftTailSkew } = snapshot.indicators;
+  const { vixeq, vix, cor1m, callPut, leftTailSkew, hvl, spx, sentiment } = snapshot.indicators;
   const checks = [
     {
       id: "vixeqPremium",
@@ -201,7 +242,7 @@ function evaluate(snapshot) {
     {
       id: "lowCorrelation",
       label: "COR1M 极低",
-      active: cor1m.value !== null && cor1m.value <= 10,
+      active: cor1m.value !== null && cor1m.value <= 15,
       detail: cor1m.value === null ? "等待数据" : String(cor1m.value),
     },
     {
@@ -213,13 +254,25 @@ function evaluate(snapshot) {
     {
       id: "skewRising",
       label: "左尾 Skew 升温",
-      active: leftTailSkew.value !== null && leftTailSkew.value >= 65,
-      detail: leftTailSkew.value === null ? "等待 IV/skew" : `${leftTailSkew.value}/100`,
+      active: leftTailSkew.value !== null && leftTailSkew.value >= 8,
+      detail: leftTailSkew.value === null ? "等待 IV/Skew" : `${leftTailSkew.value.toFixed(2)} IV点`,
+    },
+    {
+      id: "hvlBreak",
+      label: "跌破 HVL",
+      active: spx.value !== null && hvl.value !== null && spx.value < hvl.value,
+      detail: spx.value === null || hvl.value === null ? "等待 SPX/HVL" : `${spx.value.toFixed(2)} / ${hvl.value.toFixed(0)}`,
+    },
+    {
+      id: "sentimentHot",
+      label: "情绪过热",
+      active: sentiment.value !== null && sentiment.value >= 70,
+      detail: sentiment.value === null ? "等待情绪数据" : `${sentiment.value.toFixed(0)}/100`,
     },
   ];
 
   const score = checks.filter((check) => check.active).length;
-  const state = score >= 3 ? "fragile" : score >= 2 ? "watch" : "normal";
+  const state = score >= 4 ? "fragile" : score >= 2 ? "watch" : "normal";
   return { state, score, checks };
 }
 

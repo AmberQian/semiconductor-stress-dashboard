@@ -201,8 +201,8 @@ def structure_snapshot():
             },
             "sentiment": {
                 "label": "Sentiment",
-                "value": 78 if mock else None,
-                "source": "mock score 0-100" if mock else "requires sentiment feed",
+                "value": number_or_none(os.environ.get("SENTIMENT_VALUE")) or (78 if mock else None),
+                "source": "manual" if os.environ.get("SENTIMENT_VALUE") else ("mock score 0-100" if mock else "requires sentiment feed"),
             },
         },
     }
