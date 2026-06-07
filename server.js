@@ -107,12 +107,14 @@ async function tradierQuotes(symbols) {
 }
 
 async function polygonQuotes(symbols) {
-  const apiKey = process.env.POLYGON_API_KEY;
-  if (!apiKey) throw new Error("POLYGON_API_KEY is missing");
+  const apiKey = process.env.POLYGON_API_KEY || process.env.MASSIVE_API_KEY;
+  if (!apiKey) throw new Error("POLYGON_API_KEY or MASSIVE_API_KEY is missing");
+  const provider = (process.env.DATA_PROVIDER || "mock").toLowerCase();
+  const apiBase = provider === "massive" ? "https://api.massive.com" : "https://api.polygon.io";
 
   const results = await Promise.all(
     symbols.map(async (symbol) => {
-      const url = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${encodeURIComponent(symbol)}?apiKey=${encodeURIComponent(apiKey)}`;
+      const url = `${apiBase}/v2/snapshot/locale/us/markets/stocks/tickers/${encodeURIComponent(symbol)}?apiKey=${encodeURIComponent(apiKey)}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Polygon quote failed for ${symbol}: ${response.status} ${response.statusText}`);
@@ -140,7 +142,7 @@ async function getQuotes() {
   const symbols = getWatchlist();
   const provider = (process.env.DATA_PROVIDER || "mock").toLowerCase();
   if (provider === "tradier") return tradierQuotes(symbols);
-  if (provider === "polygon") return polygonQuotes(symbols);
+  if (provider === "polygon" || provider === "massive") return polygonQuotes(symbols);
   return mockQuotes(symbols);
 }
 
@@ -192,25 +194,25 @@ function evaluate(snapshot) {
   const checks = [
     {
       id: "vixeqPremium",
-      label: "VIXEQ/VIX 溢價",
+      label: "VIXEQ/VIX 溢价",
       active: vixeq.value !== null && vix.value !== null && vix.value > 0 && vixeq.value / vix.value >= 1.6,
-      detail: vixeq.value !== null && vix.value !== null ? `${(vixeq.value / vix.value).toFixed(2)}x` : "等待數據",
+      detail: vixeq.value !== null && vix.value !== null ? `${(vixeq.value / vix.value).toFixed(2)}x` : "等待数据",
     },
     {
       id: "lowCorrelation",
-      label: "COR1M 極低",
+      label: "COR1M 极低",
       active: cor1m.value !== null && cor1m.value <= 10,
-      detail: cor1m.value === null ? "等待數據" : String(cor1m.value),
+      detail: cor1m.value === null ? "等待数据" : String(cor1m.value),
     },
     {
       id: "callHeavy",
       label: "Call heavy",
       active: callPut.value !== null && callPut.value >= 2,
-      detail: callPut.value === null ? "等待期權鏈" : `${callPut.value.toFixed(2)}x`,
+      detail: callPut.value === null ? "等待期权链" : `${callPut.value.toFixed(2)}x`,
     },
     {
       id: "skewRising",
-      label: "左尾 Skew 升溫",
+      label: "左尾 Skew 升温",
       active: leftTailSkew.value !== null && leftTailSkew.value >= 65,
       detail: leftTailSkew.value === null ? "等待 IV/skew" : `${leftTailSkew.value}/100`,
     },

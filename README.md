@@ -39,6 +39,21 @@ npm start
 node server.js
 ```
 
+小白模式配置 Massive API key：
+
+```bash
+node setup-key.js
+```
+
+脚本会让你在本机粘贴 key，并自动生成 `.env`。不要把真实 key 发到聊天里。
+
+如果本机终端没有 `node` 命令，用 Mac 自带 zsh 版本：
+
+```bash
+zsh setup-key.sh
+zsh start-dashboard.sh
+```
+
 默認 `DATA_PROVIDER=mock`，用於先看表盤和判斷邏輯。要接真實數據，把 `.env` 改成：
 
 ```bash
@@ -46,16 +61,18 @@ DATA_PROVIDER=tradier
 TRADIER_TOKEN=你的 token
 ```
 
-或：
+或 Polygon.io / Massive：
 
 ```bash
-DATA_PROVIDER=polygon
-POLYGON_API_KEY=你的 key
+DATA_PROVIDER=massive
+MASSIVE_API_KEY=你的 key
 ```
 
 `VIXEQ`、`COR1M` 這類 Cboe 指數不是普通股票報價。若要真實即時值，需要 Cboe Global Indices Feed 或其他有授權的市場數據源；在接入前可用 `.env` 裡的 `VIXEQ_VALUE`、`VIX_VALUE`、`COR1M_VALUE`、`HVL_VALUE` 手動覆蓋。
 
 TradingView 可以作為圖表 widget 嵌入，但它不會把你帳號中的付費數據作為 API 暴露給這個項目。因此不建議把 TradingView 登錄態當成後端數據源。
+
+中文 API 申请与配置步骤见 [API_SETUP.zh-CN.md](API_SETUP.zh-CN.md)。
 
 ## 靜態圖解
 

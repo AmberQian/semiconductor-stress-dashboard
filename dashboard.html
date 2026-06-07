@@ -1,21 +1,21 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>半導體槓桿即時表盤</title>
-    <meta name="description" content="VIXEQ、COR1M、Call/Put、Skew、HVL 與半導體報價的本地即時監控表盤。">
+    <title>半导体杠杆踩踏实时表盘</title>
+    <meta name="description" content="VIXEQ、COR1M、Call/Put、Skew、HVL 与半导体报价的本地实时监控表盘。">
     <link rel="stylesheet" href="dashboard.css">
   </head>
   <body>
     <header class="topbar">
       <div>
         <p class="eyebrow">Realtime Dashboard</p>
-        <h1>半導體槓桿踩踏監控</h1>
+        <h1>半导体杠杆踩踏监控</h1>
       </div>
       <div class="status" id="status">
         <span class="dot"></span>
-        <b>連線中</b>
+        <b>连接中</b>
         <small>--</small>
       </div>
     </header>
@@ -24,45 +24,221 @@
       <section class="risk-panel" id="riskPanel">
         <div>
           <p class="eyebrow">Structure State</p>
-          <h2 id="riskTitle">等待數據</h2>
-          <p id="riskText">表盤每 15 秒更新一次。沒有授權數據源時會使用 mock 模式。</p>
+          <h2 id="riskTitle">等待数据</h2>
+          <p id="riskText">表盘每 15 秒更新一次。核心目标是看“单股期权投机 + 相关性坍塌 + Gamma 翻空”是否同时出现。</p>
         </div>
         <div class="risk-score">
-          <strong id="riskScore">0/4</strong>
-          <span>共振信號</span>
+          <strong id="riskScore">0/6</strong>
+          <span>共振信号</span>
         </div>
       </section>
 
-      <section class="grid grid--indicators" aria-label="核心結構指標">
+      <section class="summary-card">
+        <div>
+          <p class="eyebrow">How To Read</p>
+          <h2>这张表盘在看什么？</h2>
+        </div>
+        <p>
+          作者的方法不是先猜财报或新闻，而是先看期权市场有没有给出“结构已经很脆”的证据：
+          VIXEQ 很高、COR1M 很低、Call/Put 偏热、左尾 Skew 升温，再等 HVL 跌破作为执行触发。
+        </p>
+      </section>
+
+      <section class="card data-map">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">Data Map</p>
+            <h2>这些数据去哪里拿？</h2>
+          </div>
+        </div>
+        <div class="data-map-grid">
+          <article>
+            <b>VIXEQ / COR1M</b>
+            <span>Cboe 指数数据</span>
+            <p>这是 Cboe 发布的指数。网页能看，但要自动接入表盘，通常需要 Cboe Global Indices Feed 或授权数据商。</p>
+          </article>
+          <article>
+            <b>VIX</b>
+            <span>Cboe / 指数行情源</span>
+            <p>VIX 是 Cboe 波动率指数。普通股票 API 不一定包含，最好接指数行情或 Cboe 授权源。</p>
+          </article>
+          <article>
+            <b>Call/Put Ratio</b>
+            <span>期权链聚合</span>
+            <p>需要拿 SMH、NVDA、AMD、MU 等期权链，把 call 和 put 的成交量或未平仓量分别加总后相除。</p>
+          </article>
+          <article>
+            <b>Left-tail Skew</b>
+            <span>期权 IV / Greeks</span>
+            <p>需要每个期权合约的隐含波动率。常见算法是比较低 delta put 和相近 delta call 的 IV 差。</p>
+          </article>
+          <article>
+            <b>HVL / Gamma Flip</b>
+            <span>Gamma 模型</span>
+            <p>不是普通报价。可以用 SpotGamma、GreeksPro、Periscope，或者自己用期权链、OI、Gamma 计算净 GEX 翻转点。</p>
+          </article>
+          <article>
+            <b>当前已接入</b>
+            <span>Massive 股票数据</span>
+            <p>现在的 key 能先提供股票/ETF 报价底座；实时 snapshot 若没权限，表盘会降级到前一交易日收盘。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="card access-plan">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">Access Plan</p>
+            <h2>接入路线：现在能拿什么，还缺什么？</h2>
+          </div>
+        </div>
+        <div class="access-table">
+          <div class="access-row access-row--head">
+            <span>数据</span>
+            <span>能不能自动接入</span>
+            <span>你需要做什么</span>
+          </div>
+          <div class="access-row">
+            <span>半导体报价</span>
+            <b class="ok">已接入</b>
+            <p>Massive 免费 key 已经能跑；实时 snapshot 没权限时，降级显示前一交易日收盘。</p>
+          </div>
+          <div class="access-row">
+            <span>Call/Put</span>
+            <b class="maybe">可接入</b>
+            <p>需要 Massive Options plan，或 Tradier 期权链。拿到期权链后我可以自动聚合 call/put。</p>
+          </div>
+          <div class="access-row">
+            <span>Left-tail Skew</span>
+            <b class="maybe">可接入</b>
+            <p>需要期权 snapshot 里的 IV/Greeks。Massive Options Snapshot 文档包含 implied volatility 和 Greeks。</p>
+          </div>
+          <div class="access-row">
+            <span>HVL / Gamma Flip</span>
+            <b class="maybe">可近似计算</b>
+            <p>需要期权链的 OI + Gamma + 标的价格。可用 Massive Options 数据近似，或接 SpotGamma/GreeksPro 这类模型源。</p>
+          </div>
+          <div class="access-row">
+            <span>VIXEQ / COR1M</span>
+            <b class="hard">需要授权源</b>
+            <p>这是 Cboe 指数。自动接入需要 Cboe Global Indices Feed 或授权供应商；否则只能手动填数值。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card calc-plan">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow">Can We Calculate It?</p>
+            <h2>这些指标能不能自己算？</h2>
+          </div>
+        </div>
+        <div class="calc-grid">
+          <article>
+            <b>VIXEQ</b>
+            <strong class="hard">不能用当前数据算</strong>
+            <p>理论上要拿标普 500 每只成分股的期权链，分别计算类似 VIX 的单股隐含波动率，再按市值加权。工程量和数据授权都很重，更现实是接 Cboe 指数源。</p>
+          </article>
+          <article>
+            <b>VIX</b>
+            <strong class="hard">不建议自己算</strong>
+            <p>VIX 有公开公式，但需要 SPX 期权全链、无风险利率和严格筛选规则。最稳是直接接 Cboe VIX 或授权行情源。</p>
+          </article>
+          <article>
+            <b>COR1M</b>
+            <strong class="hard">不建议自己算</strong>
+            <p>它是 Cboe 隐含相关性指数。要复刻需要指数方差、成分股方差、权重和期权链，直接接 Cboe 更靠谱。</p>
+          </article>
+          <article>
+            <b>Call/Put</b>
+            <strong class="ok">可以自己算</strong>
+            <p>需要期权链成交量或未平仓量。公式很简单：Call 总量 ÷ Put 总量。拿到 Massive Options 或 Tradier Options 后我就能接。</p>
+          </article>
+          <article>
+            <b>Left-tail Skew</b>
+            <strong class="ok">可以自己算</strong>
+            <p>需要每个期权的 IV/Greeks。常见做法是比较低 delta put IV 和相近 delta call IV，或比较 25-delta put/call skew。</p>
+          </article>
+          <article>
+            <b>HVL / Gamma Flip</b>
+            <strong class="maybe">可以近似算</strong>
+            <p>需要期权 OI、Gamma、标的价格、合约乘数。按不同行权价计算净 GEX，找到从正转负的价格区间。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="grid grid--indicators" aria-label="核心结构指标">
         <article class="card metric">
-          <span>VIXEQ</span>
+          <div class="metric-top">
+            <span>VIXEQ</span>
+            <em>单股恐慌</em>
+          </div>
           <strong id="vixeq">--</strong>
+          <p>把标普 500 成分股的单股期权波动率加权平均。它高，说明投机/恐慌集中在个股期权里。</p>
           <small id="vixeqSource">--</small>
         </article>
         <article class="card metric">
-          <span>VIX</span>
+          <div class="metric-top">
+            <span>VIX</span>
+            <em>指数恐慌</em>
+          </div>
           <strong id="vix">--</strong>
+          <p>标普 500 指数层面的隐含波动率。用来和 VIXEQ 比较，判断个股是否比指数更拥挤。</p>
           <small id="vixSource">--</small>
         </article>
-        <article class="card metric metric--core">
-          <span>VIXEQ / VIX</span>
-          <strong id="premium">--</strong>
-          <small>單股恐慌溢價</small>
+        <article class="card metric">
+          <div class="metric-top">
+            <span>SPX</span>
+            <em>HVL 对照</em>
+          </div>
+          <strong id="spx">--</strong>
+          <p>用来判断价格是否已经跌破 HVL。若 SPX 低于 HVL，说明执行层面的 Gamma 风险开始被触发。</p>
+          <small id="spxSource">--</small>
         </article>
         <article class="card metric metric--core">
-          <span>COR1M</span>
+          <div class="metric-top">
+            <span>VIXEQ / VIX</span>
+            <em>拥挤溢价</em>
+          </div>
+          <strong id="premium">--</strong>
+          <p>比例越高，越像“大家都在买少数个股期权”，指数表面平静但个股杠杆很重。</p>
+          <small>核心信号：高于约 1.6x 进入警戒</small>
+        </article>
+        <article class="card metric metric--core">
+          <div class="metric-top">
+            <span>COR1M</span>
+            <em>隐含相关性</em>
+          </div>
           <strong id="cor1m">--</strong>
+          <p>市场用期权价格隐含出来的未来 1 个月平均相关性。越低，越像“大家以为个股互不相干”。</p>
           <small id="cor1mSource">--</small>
         </article>
         <article class="card metric">
-          <span>Call/Put</span>
+          <div class="metric-top">
+            <span>Call/Put</span>
+            <em>看涨热度</em>
+          </div>
           <strong id="callPut">--</strong>
+          <p>看涨期权成交或持仓 ÷ 看跌期权。越高，说明追涨和杠杆投机越热。</p>
           <small id="callPutSource">--</small>
         </article>
         <article class="card metric">
-          <span>Left-tail Skew</span>
+          <div class="metric-top">
+            <span>Left-tail Skew</span>
+            <em>左尾保险</em>
+          </div>
           <strong id="skew">--</strong>
+          <p>看跌期权隐含波动率相对抬升。快速升温时，说明市场开始为个股暴跌买保险。</p>
           <small id="skewSource">--</small>
+        </article>
+        <article class="card metric">
+          <div class="metric-top">
+            <span>Sentiment</span>
+            <em>情绪辅助</em>
+          </div>
+          <strong id="sentiment">--</strong>
+          <p>辅助判断市场情绪是否过热或转弱。它不是核心触发，只用来给 VIXEQ/COR1M/期权信号做背景确认。</p>
+          <small id="sentimentSource">--</small>
         </article>
       </section>
 
@@ -71,9 +247,10 @@
           <div class="card-head">
             <div>
               <p class="eyebrow">Decision Checks</p>
-              <h2>結構共振</h2>
+              <h2>结构共振信号灯</h2>
             </div>
           </div>
+          <p class="note">不是单个指标触发交易，而是多个指标同时亮起，才说明结构从“热”变成“脆”。</p>
           <div class="checks" id="checks"></div>
         </article>
 
@@ -81,35 +258,41 @@
           <div class="card-head">
             <div>
               <p class="eyebrow">Execution Trigger</p>
-              <h2>HVL / Gamma 翻轉</h2>
+              <h2>HVL / Gamma 翻转</h2>
+              <p class="card-subtitle">当前显示的是手动参考值，不是实时计算。</p>
             </div>
-            <strong id="hvl">7495</strong>
+            <div class="hvl-value">
+              <strong id="hvl">7495</strong>
+              <span id="hvlSource">手动</span>
+            </div>
           </div>
           <div class="hvl-track">
-            <span class="positive">正 Gamma：壓波動</span>
+            <span class="positive">7495 以上：正 Gamma，做市商买跌卖涨，压波动</span>
             <b>HVL</b>
-            <span class="negative">負 Gamma：越跌越賣</span>
+            <span class="negative">跌破 7495：负 Gamma，做市商越跌越卖，放大踩踏</span>
           </div>
-          <p class="note">HVL 需要由你的 Periscope / SpotGamma / 自有期權模型輸入；表盤先支持手動環境變量。</p>
+          <div class="hvl-distance" id="hvlDistance">等待 SPX 与 HVL 数据</div>
+          <p class="note">实时 HVL 需要 Gamma Exposure 数据：每个期权合约的 OI、Gamma、标的价格和合约乘数。可以接 SpotGamma、GreeksPro、Periscope，或者自己计算净 GEX 翻转点。</p>
         </article>
       </section>
 
-      <section class="card">
+      <section class="card quote-section">
         <div class="card-head">
           <div>
             <p class="eyebrow">Semiconductor Watchlist</p>
-            <h2>報價監控</h2>
+            <h2>报价监控</h2>
           </div>
           <small id="quoteTime">--</small>
         </div>
+        <p class="note" id="quoteNote">当前报价用于观察半导体风险资产的同步性；免费数据源可能显示前一交易日收盘。</p>
         <div class="quotes" id="quotes"></div>
       </section>
 
-      <section class="card">
+      <section class="card chart-section">
         <div class="card-head">
           <div>
             <p class="eyebrow">TradingView Widget</p>
-            <h2>SMH 參考圖</h2>
+            <h2>SMH 参考图</h2>
           </div>
         </div>
         <div class="tv-wrap">
@@ -127,7 +310,7 @@
                 "timezone": "America/New_York",
                 "theme": "light",
                 "style": "1",
-                "locale": "zh_TW",
+                "locale": "zh_CN",
                 "hide_side_toolbar": false,
                 "allow_symbol_change": true,
                 "calendar": false,
@@ -136,7 +319,7 @@
             </script>
           </div>
         </div>
-        <p class="note">TradingView widget 可顯示圖表，但不向本項目暴露可計算的期權鏈、VIXEQ 或 COR1M API。</p>
+        <p class="note">TradingView 只负责显示图表；VIXEQ、COR1M、期权链和 Skew 仍需要独立数据源。</p>
       </section>
     </main>
 

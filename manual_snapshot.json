@@ -1,0 +1,47 @@
+{
+  "capturedAt": "2026-06-07T03:10:00Z",
+  "mode": "temporary-web-snapshot",
+  "notes": "公开网页临时抓取/推导快照。不是自动实时数据源，不作为交易建议。",
+  "indicators": {
+    "vixeq": {
+      "value": 44.72,
+      "source": "S&P DJI：VIXEQ 官方页面，2026-05-29 最新收盘"
+    },
+    "vix": {
+      "value": 21.51,
+      "source": "Tallac Options：VIX 2026-06-05 收盘"
+    },
+    "cor1m": {
+      "value": 14.52,
+      "source": "Investing.com CA：COR1M 页面 FAQ 当前值"
+    },
+    "hvl": {
+      "value": 7495,
+      "source": "帖子/截图参考值，非实时 Gamma 计算"
+    },
+    "spx": {
+      "value": 7383.74,
+      "source": "Tallac Options：SPX 2026-06-05 收盘"
+    },
+    "callPut": {
+      "value": 0.26,
+      "source": "StockOptionsChannel：SMH 全链 Call volume 126,552 / Put volume 485,905，延迟约 20 分钟"
+    },
+    "leftTailSkew": {
+      "value": 9.55,
+      "source": "MarketBeat：SMH 6/12/2026 约 25-delta put IV 64.27% - call IV 54.72%"
+    },
+    "sentiment": {
+      "value": 42,
+      "source": "Fear & Greed 历史数据页：2026-06-05 为 42，Fear"
+    }
+  },
+  "quotes": [
+    {
+      "symbol": "SMH",
+      "price": 569.69,
+      "changePercent": -9.22,
+      "source": "MarketBeat / StockOptionsChannel，2026-06-05 收盘"
+    }
+  ]
+}
