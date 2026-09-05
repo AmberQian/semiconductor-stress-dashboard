@@ -37,6 +37,10 @@ function formatNumber(value, digits = 2) {
 function formatTime(value) {
   if (!value) return "--";
   return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Shanghai",
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
@@ -57,14 +61,16 @@ function shortError(message) {
 
 function updateRisk(evaluation, provider) {
   const labels = {
-    fragile: ["结构脆弱", "多个杠杆踩踏条件同时成立，重点看是否已经跌破 HVL，并观察踩踏是否扩散。"],
+    fragile: ["结构脆弱", "多个观察条件同时成立。结合价位与来源核对，进一步检查结构压力。"],
     watch: ["进入观察", "核心条件部分成立，还需要更多期权与相关性信号共振，暂时不把单一指标当交易指令。"],
-    normal: ["结构正常", "目前没有形成足够共振。价格可能波动，但还看不到完整的“拥挤杠杆踩踏”结构。"],
+    normal: ["常规观察", "当前触发条件较少，继续观察各项读数与数据完整性。"],
   };
   const [title, text] = labels[evaluation.state] || labels.normal;
   elements.riskPanel.className = `risk-panel ${evaluation.state}`;
   elements.riskTitle.textContent = title;
-  elements.riskText.textContent = `${text} 数据源：${provider}。`;
+  elements.riskText.textContent = text;
+  document.querySelector("#stateTag").textContent = "规则计数";
+  document.querySelectorAll(".risk-meter i").forEach((bar, i) => bar.classList.toggle("lit", i < evaluation.score));
   elements.riskScore.textContent = `${evaluation.score}/${evaluation.checks.length}`;
 }
 
@@ -119,11 +125,12 @@ function updateIndicators(structure) {
       elements.hvlDistance.textContent = "等待 SPX 与 HVL 数据";
       elements.hvlDistance.className = "hvl-distance";
     } else {
-      const distance = ((spx - hvl) / hvl) * 100;
+      const distance = hvl > 0 ? ((spx - hvl) / hvl) * 100 : 0;
+      document.querySelector(".hvl-track").style.setProperty("--position", `${Math.max(0, Math.min(100, 50 + distance * 10))}%`);
       elements.hvlDistance.textContent =
         distance < 0
-          ? `SPX 已低于 HVL ${Math.abs(distance).toFixed(2)}%，执行层进入负 Gamma 风险区`
-          : `SPX 仍高于 HVL ${distance.toFixed(2)}%，执行层暂未跌破`;
+          ? `SPX 已低于 HVL ${Math.abs(distance).toFixed(2)}%，低于手动参考位`
+          : `SPX 仍高于 HVL ${distance.toFixed(2)}%，暂未跌破参考位`;
       elements.hvlDistance.className = `hvl-distance ${distance < 0 ? "danger" : "safe"}`;
     }
   }
@@ -134,44 +141,26 @@ function translateCheckDetail(detail) {
   return detail;
 }
 
+let currentChecks = [];
+let activeFilter = "all";
 function updateChecks(checks) {
-  const missingHints = {
-    vixeqPremium: "缺 VIXEQ 和 VIX。VIXEQ/COR1M 来自 Cboe 指数源；VIX 可从 Cboe 或指数行情源获取。",
-    lowCorrelation: "缺 COR1M。它是 Cboe 1个月隐含相关性指数，需要 Cboe 或授权数据商。",
-    callHeavy: "缺期权链。需要拿 SMH/NVDA/AMD/MU 等期权成交量或未平仓量后聚合。",
-    skewRising: "缺 IV/Greeks。需要期权链里的隐含波动率，再计算左尾 put 相对 call 的 IV 溢价。",
-    hvlBreak: "缺 SPX 或 HVL。SPX 要指数行情，HVL 要 Gamma 模型或帖子参考值。",
-    sentimentHot: "缺情绪指标。可以用 Fear & Greed、AAII、NAAIM 等作为辅助，不是核心触发。",
-  };
-
-  elements.checks.replaceChildren(
-    ...checks.map((check) => {
-      const row = document.createElement("div");
-      row.className = `check ${check.active ? "active" : "waiting"}`;
-
-      const text = document.createElement("div");
-      text.className = "check-text";
-
-      const label = document.createElement("b");
-      label.textContent = check.label
-        .replace("溢價", "溢价")
-        .replace("極低", "极低")
-        .replace("左尾 Skew 升溫", "左尾 Skew 升温");
-
-      const hint = document.createElement("p");
-      hint.textContent = check.active
-        ? "信号已亮起，说明该结构条件成立。临时网页快照只用于展示表盘，不等于交易指令。"
-        : missingHints[check.id] || "等待对应数据源。";
-
-      const detail = document.createElement("small");
-      detail.textContent = translateCheckDetail(check.detail);
-
-      text.append(label, hint);
-      row.append(text, detail);
-      return row;
-    }),
-  );
+  currentChecks = checks;
+  const hints = {vixeqPremium: "阈值 ≥ 1.60x", lowCorrelation: "阈值 ≤ 15", callHeavy: "阈值 ≥ 2.00x", skewRising: "阈值 ≥ 8 IV点", hvlBreak: "SPX < HVL 参考值", sentimentHot: "辅助阈值 ≥ 70"};
+  elements.checks.replaceChildren(...checks.filter(c => activeFilter === "all" || c.active).map(check => {
+    const row = document.createElement("div"); row.className = `check ${check.active ? "active" : "waiting"}`;
+    const text = document.createElement("div"); text.className = "check-text";
+    const label = document.createElement("b"); label.textContent = check.label;
+    const hint = document.createElement("p"); hint.textContent = `${hints[check.id] || "观察条件"} · ${check.active ? "已触发" : check.detail.startsWith("等待") ? "数据待补充" : "未触发"}`;
+    const detail = document.createElement("small"); detail.textContent = translateCheckDetail(check.detail);
+    text.append(label, hint); row.append(text, detail); return row;
+  }));
+  if (!elements.checks.children.length) { const empty = document.createElement("p"); empty.className = "muted"; empty.textContent = "当前没有已触发条件。"; elements.checks.append(empty); }
 }
+document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => {
+  activeFilter = button.dataset.filter;
+  document.querySelectorAll("[data-filter]").forEach(b => b.setAttribute("aria-pressed", String(b === button)));
+  updateChecks(currentChecks);
+}));
 
 function updateQuotes(quotes, timestamp) {
   elements.quoteTime.textContent = `更新：${formatTime(timestamp)}`;
@@ -197,8 +186,14 @@ function updateQuotes(quotes, timestamp) {
   );
 }
 
+let loading = false;
 async function loadSnapshot() {
+  if (loading) return;
+  loading = true;
+  const refresh = document.querySelector("#refresh");
+  refresh.disabled = true; refresh.setAttribute("aria-busy", "true");
   try {
+    if (location.hostname.endsWith("github.io")) throw new Error("Static hosting");
     const response = await fetch("/api/snapshot", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
@@ -225,6 +220,8 @@ async function loadSnapshot() {
     } catch (fallbackError) {
       setStatus("error", "连接失败", `${error.message}; ${fallbackError.message}`);
     }
+  } finally {
+    loading = false; refresh.disabled = false; refresh.setAttribute("aria-busy", "false");
   }
 }
 
@@ -305,5 +302,6 @@ async function loadManualSnapshot() {
   };
 }
 
+document.querySelector("#refresh").addEventListener("click", loadSnapshot);
 loadSnapshot();
 setInterval(loadSnapshot, POLL_MS);
